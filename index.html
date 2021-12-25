@@ -12,6 +12,7 @@
 	<script src="https://sdk.amazonaws.com/js/aws-sdk-2.96.0.min.js"></script>
 	<script src="auth.js"></script>
 	<script src="aws-cognito-sdk.js"></script>
+	<script src="jwt-decode.js"></script>
 	<script src="amazon-cognito-auth.min.js"></script>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 </head>
@@ -126,7 +127,14 @@
 					Logins: {}
 				};
 				cognitoParams.Logins["cognito-idp."+region+".amazonaws.com/"+poolId] = id_token;
-				AWS.config.credentials = new AWS.CognitoIdentityCredentials(cognitoParams);
+				//AWS.config.credentials = new AWS.CognitoIdentityCredentials(cognitoParams);
+
+                let webIdentityParams = {};
+                var decodeToken = jwt_decode(auth.signInUserSession.idToken.jwtToken);
+                webIdentityParams['RoleArn'] = roleArn;
+                webIdentityParams['RoleSessionName'] = decodeToken.sub;
+                webIdentityParams['WebIdentityToken'] = auth.signInUserSession.idToken.jwtToken;
+				AWS.config.credentials = new AWS.WebIdentityCredentials(webIdentityParams);
 				AWS.config.getCredentials(function(){
 					let req = new XMLHttpRequest();
 					let creds = {
